@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CENTS Animated Background</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+:root {
+  --navy: #0a1a2f;
+  --green: #2ee66b;
+  --silver: #cfd8dc;
+  --blue: #4da3ff;
+}
+
+html, body {
+  margin:0;
+  padding:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background: var(--navy);
+}
+
+canvas { position: fixed; inset:0; z-index:0; }
+
+.container {
+  position: relative;
+  z-index:1;
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+.links {
+  display:flex;
+  flex-direction:column;
+  gap:20px;
+  width:90%;
+  max-width:420px;
+}
+
+.link {
+  padding:18px 25px;
+  border-radius:12px;
+  text-align:center;
+  font-size:1.15rem;
+  font-weight:600;
+  color: #cfd8dc; /* silver text */
+  text-decoration: none;
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.18);
+  transition: transform 0.2s, background 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
+
+.link:hover {
+  transform: translateY(-3px);
+  background: rgba(255,255,255,0.18);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+
+<div class="container">
+  <div class="links">
+    <a class="link" href="https://cents.mercurystriker.com/">Cents</a>
+    <a class="link" href="https://vestige.fi/asset/1182620971">MIT</a>
+    <a class="link" href="https://vestige.fi/asset/3046997745">MIST</a>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById("bg");
+const ctx = canvas.getContext("2d");
+
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+window.addEventListener("resize", resize);
+resize();
+
+/* -------------------------
+   Moving Lines
+------------------------- */
+const lineColors = ["#2ee66b","#2ee66b","#2ee66b","#cfd8dc","#cfd8dc","#cfd8dc","#4da3ff","#4da3ff","#4da3ff"];
+const lines = [];
+
+for (let i=0; i<9; i++) {
+  lines.push({
+    x: Math.random()*canvas.width,
+    y: Math.random()*canvas.height,
+    vx: (Math.random()-0.5)*1.2,
+    vy: (Math.random()-0.5)*1.2,
+    color: lineColors[i],
+    trail: []
+  });
+}
+
+/* -------------------------
+   Moving Dots
+------------------------- */
+const dotColors = ["#2ee66b","#cfd8dc","#4da3ff"];
+const dots = [];
+const DOT_COUNT = 50;
+
+for(let i=0;i<DOT_COUNT;i++){
+  const color = dotColors[Math.floor(Math.random()*dotColors.length)];
+  dots.push({
+    x: Math.random()*canvas.width,
+    y: Math.random()*canvas.height,
+    radius: 2 + Math.random()*2,
+    color: color,
+    vx: (Math.random()-0.5)*1.2,
+    vy: (Math.random()-0.5)*1.2,
+    trail: []
+  });
+}
+
+function animate() {
+  // fade frame slightly
+  ctx.fillStyle = "rgba(10,26,47,0.08)";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  // draw lines
+  for(const line of lines){
+    line.trail.push({x: line.x, y: line.y});
+    if(line.trail.length>25) line.trail.shift();
+
+    ctx.strokeStyle = line.color;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(line.trail[0].x, line.trail[0].y);
+    for(let t=1;t<line.trail.length;t++){
+      ctx.lineTo(line.trail[t].x, line.trail[t].y);
+    }
+    ctx.stroke();
+
+    line.x += line.vx;
+    line.y += line.vy;
+
+    if(line.x<0) line.x=canvas.width;
+    if(line.x>canvas.width) line.x=0;
+    if(line.y<0) line.y=canvas.height;
+    if(line.y>canvas.height) line.y=0;
+  }
+
+  // draw dots
+  for(const dot of dots){
+    dot.trail.push({x: dot.x, y: dot.y});
+    if(dot.trail.length>20) dot.trail.shift();
+
+    ctx.strokeStyle = dot.color;
+    ctx.lineWidth = dot.radius;
+    ctx.beginPath();
+    ctx.moveTo(dot.trail[0].x, dot.trail[0].y);
+    for(let t=1;t<dot.trail.length;t++){
+      ctx.lineTo(dot.trail[t].x, dot.trail[t].y);
+    }
+    ctx.stroke();
+
+    dot.x += dot.vx;
+    dot.y += dot.vy;
+
+    if(dot.x<0) dot.x=canvas.width;
+    if(dot.x>canvas.width) dot.x=0;
+    if(dot.y<0) dot.y=canvas.height;
+    if(dot.y>canvas.height) dot.y=0;
+  }
+
+  requestAnimationFrame(animate);
+}
+
+animate();
+</script>
+</body>
+</html>
+
